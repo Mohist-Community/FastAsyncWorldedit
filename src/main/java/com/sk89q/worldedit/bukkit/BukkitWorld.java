@@ -22,6 +22,7 @@ package com.sk89q.worldedit.bukkit;
 import com.boydti.fawe.Fawe;
 import com.boydti.fawe.bukkit.FaweBukkit;
 import com.boydti.fawe.bukkit.v0.BukkitQueue_0;
+import com.mohistmc.api.ItemAPI;
 import com.sk89q.worldedit.*;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.blocks.BaseBlock;
@@ -104,41 +105,32 @@ public class BukkitWorld extends LocalWorld {
 
     private void addEntities(Entity ent, Collection<com.sk89q.worldedit.entity.Entity> ents) {
         ents.add(adapt(ent));
-        FaweBukkit.Version version = Fawe.<FaweBukkit>imp().getVersion();
-        switch (version) {
-            case NONE:
-            case v1_7_R4:
-            case v1_8_R3:
-            case v1_9_R2:
-            case v1_10_R1:
-            case v1_11_R1:
-                return;
-            default:
-                if (ent instanceof Player) {
-                    final Player plr = (Player) ent;
-                    com.sk89q.worldedit.entity.Entity left = adapt(((Player) ent).getShoulderEntityLeft());
-                    com.sk89q.worldedit.entity.Entity right = adapt(((Player) ent).getShoulderEntityRight());
-                    if (left != null) {
-                        ents.add(new DelegateEntity(left) {
-                            @Override
-                            public boolean remove() {
-                                plr.setShoulderEntityLeft(null);
-                                return true;
-                            }
-                        });
+
+        if (ent instanceof Player) {
+            final Player plr = (Player) ent;
+            com.sk89q.worldedit.entity.Entity left = adapt(((Player) ent).getShoulderEntityLeft());
+            com.sk89q.worldedit.entity.Entity right = adapt(((Player) ent).getShoulderEntityRight());
+            if (left != null) {
+                ents.add(new DelegateEntity(left) {
+                    @Override
+                    public boolean remove() {
+                        plr.setShoulderEntityLeft(null);
+                        return true;
                     }
-                    if (right != null) {
-                        ents.add(new DelegateEntity(right) {
-                            @Override
-                            public boolean remove() {
-                                plr.setShoulderEntityRight(null);
-                                return true;
-                            }
-                        });
+                });
+            }
+            if (right != null) {
+                ents.add(new DelegateEntity(right) {
+                    @Override
+                    public boolean remove() {
+                        plr.setShoulderEntityRight(null);
+                        return true;
                     }
-                }
+                });
+            }
+
         }
-    };
+    }
 
     @Nullable
     @Override
@@ -399,7 +391,7 @@ public class BukkitWorld extends LocalWorld {
     @SuppressWarnings("deprecation")
     @Override
     public boolean isValidBlockType(int type) {
-        return Material.getMaterial(type) != null && Material.getMaterial(type).isBlock();
+        return ItemAPI.getBlockMaterial(type) != null && ItemAPI.getBlockMaterial(type).isBlock();
     }
 
     @Override

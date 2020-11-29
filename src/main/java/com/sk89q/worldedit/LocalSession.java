@@ -68,6 +68,7 @@ import javax.annotation.Nullable;
 
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import org.bukkit.Bukkit;
 
 /**
  * Stores session information.

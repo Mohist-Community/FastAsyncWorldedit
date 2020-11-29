@@ -34,7 +34,7 @@ dependencies {
     compile files('libs/spigot-1.12.2.jar')
     compile files('libs/WorldEdit-6.1.9-0.2.1-SNAPSHOT-all.jar')
     compile files('libs/ProtocolLib.jar')
-    compile files('libs/mohist_srg.jar')
+    compile files('libs/mohist-1.12.2-119.jar')
     compile 'co.aikar:fastutil-lite:1.0'
     compile 'com.github.luben:zstd-jni:1.1.1'
 }
@@ -43,7 +43,7 @@ shadowJar {
     dependencies {
         include(dependency('com.github.luben:zstd-jni:1.1.1'))
         include(dependency('co.aikar:fastutil-lite:1.0'))
-        exclude 'mohist_srg.jar'
+        exclude 'mohist-1.12.2-119.jar'
         exclude 'ProtocolLib.jar'
         exclude 'spigot-1.12.2.jar'
         exclude 'WorldEdit-6.1.9-0.2.1-SNAPSHOT-all.jar'
