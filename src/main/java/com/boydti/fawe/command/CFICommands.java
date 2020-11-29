@@ -6,25 +6,11 @@ import com.boydti.fawe.config.BBC;
 import com.boydti.fawe.config.Commands;
 import com.boydti.fawe.jnbt.anvil.HeightMapMCAGenerator;
 import com.boydti.fawe.object.FawePlayer;
-import com.boydti.fawe.object.RunnableVal;
 import com.boydti.fawe.object.clipboard.MultiClipboardHolder;
 import com.boydti.fawe.object.pattern.PatternExtent;
 import com.boydti.fawe.util.*;
 import com.boydti.fawe.util.chat.Message;
 import com.boydti.fawe.util.image.ImageUtil;
-import com.intellectualcrafters.plot.PS;
-import com.intellectualcrafters.plot.commands.Auto;
-import com.intellectualcrafters.plot.config.C;
-import com.intellectualcrafters.plot.config.Settings;
-import com.intellectualcrafters.plot.database.DBFunc;
-import com.intellectualcrafters.plot.object.Plot;
-import com.intellectualcrafters.plot.object.PlotArea;
-import com.intellectualcrafters.plot.object.PlotId;
-import com.intellectualcrafters.plot.object.PlotPlayer;
-import com.intellectualcrafters.plot.object.worlds.PlotAreaManager;
-import com.intellectualcrafters.plot.object.worlds.SinglePlotArea;
-import com.intellectualcrafters.plot.object.worlds.SinglePlotAreaManager;
-import com.intellectualcrafters.plot.util.MathMan;
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandContext;
 import com.sk89q.minecraft.util.commands.CommandException;
@@ -81,46 +67,6 @@ public class CFICommands extends MethodCommands {
         this.dispathcer= dispatcher;
     }
 
-    private File getFolder(String worldName) {
-        return new File(PS.imp().getWorldContainer(), worldName + File.separator + "region");
-    }
-
-    @Command(
-            aliases = {"heightmap"},
-            usage = "<url>",
-            desc = "Start CFI with a height map as a base"
-    )
-    @CommandPermissions("worldedit.anvil.cfi")
-    public void heightmap(FawePlayer fp, BufferedImage image, @Optional("1") double yscale) {
-        if (yscale != 0) {
-            int[] raw = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
-            int[] table = new int[256];
-            for (int i = 0; i < table.length; i++) {
-                table[i] = Math.min(255, (int) (i * yscale));
-            }
-            for (int i = 0; i < raw.length; i++) {
-                int color = raw[i];
-                int red = table[(color >> 16) & 0xFF];
-                int green = table[(color >> 8) & 0xFF];
-                int blue = table[(color >> 0) & 0xFF];
-                raw[i] = (red << 16) + (green << 8) + (blue << 0);
-            }
-        }
-        HeightMapMCAGenerator generator = new HeightMapMCAGenerator(image, getFolder(generateName()));
-        setup(generator, fp);
-    }
-
-    @Command(
-            aliases = {"empty"},
-            usage = "<width> <length>",
-            desc = "Start CFI with an empty map as a base"
-    )
-    @CommandPermissions("worldedit.anvil.cfi")
-    public void heightmap(FawePlayer fp, int width, int length) {
-        HeightMapMCAGenerator generator = new HeightMapMCAGenerator(width, length, getFolder(generateName()));
-        setup(generator, fp);
-    }
-
     private String generateName() {
         DateFormat df = new SimpleDateFormat("dd.MM.yyyy HH.mm.ss");
         String data = df.format(new Date());
@@ -166,87 +112,6 @@ public class CFICommands extends MethodCommands {
     public void cancel(FawePlayer fp) throws ParameterException, IOException {
         getSettings(fp).remove();
         fp.sendMessage(BBC.getPrefix() + "Cancelled!");
-    }
-
-    @Deprecated
-    public static void autoClaimFromDatabase(PlotPlayer player, PlotArea area, PlotId start, com.intellectualcrafters.plot.object.RunnableVal<Plot> whenDone) {
-        final Plot plot = area.getNextFreePlot(player, start);
-        if (plot == null) {
-            whenDone.run(null);
-            return;
-        }
-        whenDone.value = plot;
-        plot.owner = player.getUUID();
-        DBFunc.createPlotSafe(plot, whenDone, new Runnable() {
-            @Override
-            public void run() {
-                autoClaimFromDatabase(player, area, plot.getId(), whenDone);
-            }
-        });
-    }
-
-    @Command(
-            aliases = {"done", "create"},
-            usage = "",
-            desc = "Create the world"
-    )
-    @CommandPermissions("worldedit.anvil.cfi")
-    public void done(FawePlayer fp) throws ParameterException, IOException {
-        CFISettings settings = assertSettings(fp);
-
-        PlotAreaManager manager = PS.get().getPlotAreaManager();
-        if (manager instanceof SinglePlotAreaManager) {
-            SinglePlotAreaManager sManager = (SinglePlotAreaManager) manager;
-            SinglePlotArea area = sManager.getArea();
-            PlotPlayer player = PlotPlayer.wrap(fp.parent);
-
-            fp.sendMessage(BBC.getPrefix() + "Claiming world");
-            Plot plot = TaskManager.IMP.sync(new RunnableVal<Plot>() {
-                @Override
-                public void run(Plot o) {
-                    int currentPlots = Settings.Limit.GLOBAL ? player.getPlotCount() : player.getPlotCount(area.worldname);
-                    int diff = player.getAllowedPlots() - currentPlots;
-                    if (diff < 1) {
-                        C.CANT_CLAIM_MORE_PLOTS_NUM.send(player, -diff);
-                        return;
-                    }
-
-                    if (area.getMeta("lastPlot") == null) {
-                        area.setMeta("lastPlot", new PlotId(0, 0));
-                    }
-                    PlotId lastId = (PlotId) area.getMeta("lastPlot");
-                    while (true) {
-                        lastId = Auto.getNextPlotId(lastId, 1);
-                        if (area.canClaim(player, lastId, lastId)) {
-                            break;
-                        }
-                    }
-                    area.setMeta("lastPlot", lastId);
-                    this.value = area.getPlot(lastId);
-                    this.value.setOwner(player.getUUID());
-                }
-            });
-            if (plot == null) return;
-
-            File folder = getFolder(plot.getWorldName());
-            HeightMapMCAGenerator generator = settings.getGenerator();
-            generator.setFolder(folder);
-
-            fp.sendMessage(BBC.getPrefix() + "Generating");
-            generator.generate();
-            generator.setPacketViewer(null);
-            generator.setImageViewer(null);
-            settings.remove();
-            fp.sendMessage(BBC.getPrefix() + "Done!");
-            TaskManager.IMP.sync(new RunnableVal<Object>() {
-                @Override
-                public void run(Object value) {
-                    plot.teleportPlayer(player);
-                }
-            });
-        } else {
-            fp.sendMessage(BBC.getPrefix() + "Must have the `worlds` component enabled in the PlotSquared config.yml");
-        }
     }
 
     @Command(

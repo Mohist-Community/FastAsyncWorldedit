@@ -149,10 +149,6 @@ public class ForwardExtentCopy implements Operation {
         return sourceMask;
     }
 
-    public void setCopyingEntities(boolean copyEntities) {
-        setCopyEntities(copyEntities);
-    }
-
     public void setCopyEntities(boolean copyEntities) {
         this.copyEntities = copyEntities;
     }

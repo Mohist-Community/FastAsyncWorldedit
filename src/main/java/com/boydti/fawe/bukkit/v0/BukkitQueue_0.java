@@ -50,7 +50,6 @@ import org.bukkit.plugin.Plugin;
 
 public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMappedFaweQueue<World, CHUNK, CHUNKSECTIONS, SECTION> implements Listener {
 
-    protected static boolean PAPER = true;
     private static BukkitImplAdapter adapter;
     private static FaweAdapter_All backupAdaper;
     private static Method methodToNative;
@@ -152,28 +151,6 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
 
     @Override
     public boolean queueChunkLoad(int cx, int cz, RunnableVal<CHUNK> operation) {
-        if (PAPER) {
-            try {
-                new PaperChunkCallback(getImpWorld(), cx, cz) {
-                    @Override
-                    public void onLoad(Chunk bukkitChunk) {
-                        try {
-                            CHUNK chunk = (CHUNK) methodGetHandle.invoke(bukkitChunk);
-                            try {
-                                operation.run(chunk);
-                            } catch (Throwable e) {
-                                e.printStackTrace();
-                            }
-                        } catch (Throwable e) {
-                            PAPER = false;
-                        }
-                    }
-                };
-                return true;
-            } catch (Throwable ignore) {
-                PAPER = false;
-            }
-        }
         return super.queueChunkLoad(cx, cz);
     }
 
@@ -395,7 +372,7 @@ public abstract class BukkitQueue_0<CHUNK, CHUNKSECTIONS, SECTION> extends NMSMa
                     if (timingsEnabled) {
                         if (alertTimingsChange) {
                             alertTimingsChange = false;
-                            Fawe.debug("Having `parallel-threads` > 1 interferes with the timings.");
+                            Fawe.debug("并行线程大于1会干扰时间.");
                         }
                         fieldTimingsEnabled.set(null, false);
                         methodCheck.invoke(null);

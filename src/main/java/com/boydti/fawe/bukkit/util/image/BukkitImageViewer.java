@@ -19,21 +19,14 @@ import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
-import org.inventivetalent.mapmanager.MapManagerPlugin;
-import org.inventivetalent.mapmanager.controller.MapController;
-import org.inventivetalent.mapmanager.controller.MultiMapController;
-import org.inventivetalent.mapmanager.manager.MapManager;
-import org.inventivetalent.mapmanager.wrapper.MapWrapper;
 
 public class BukkitImageViewer implements ImageViewer {
-    private final MapManager mapManager;
     private final Player player;
     private BufferedImage last;
     private ItemFrame[][] frames;
     private boolean reverse;
 
     public BukkitImageViewer(Player player) {
-        mapManager = ((MapManagerPlugin) Bukkit.getPluginManager().getPlugin("MapManager")).getMapManager();
         this.player = player;
     }
 
@@ -142,11 +135,6 @@ public class BukkitImageViewer implements ImageViewer {
             int width = frames.length;
             int height = frames[0].length;
             BufferedImage scaled = ImageUtil.getScaledInstance(image, 128 * width, 128 * height, RenderingHints.VALUE_INTERPOLATION_BILINEAR, false);
-            MapWrapper mapWrapper = mapManager.wrapMultiImage(scaled, width, height);
-            MultiMapController controller = (MultiMapController) mapWrapper.getController();
-            controller.addViewer(player);
-            controller.sendContent(player);
-            controller.showInFrames(player, frames, true);
         } else {
             int slot = getMapSlot(player);
             if (slot == -1) {
@@ -161,11 +149,6 @@ public class BukkitImageViewer implements ImageViewer {
             if (image == null && drawable != null) image = drawable.draw();
             last = image;
             BufferedImage scaled = ImageUtil.getScaledInstance(image, 128, 128, RenderingHints.VALUE_INTERPOLATION_BILINEAR, false);
-            MapWrapper mapWrapper = mapManager.wrapImage(scaled);
-            MapController controller = mapWrapper.getController();
-            controller.addViewer(player);
-            controller.sendContent(player);
-            controller.showInHand(player, true);
         }
     }
 

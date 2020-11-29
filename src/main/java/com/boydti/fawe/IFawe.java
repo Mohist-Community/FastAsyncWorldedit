@@ -22,8 +22,6 @@ public interface IFawe {
 
     public FawePlayer wrap(final Object obj);
 
-    public void setupVault();
-
     public TaskManager getTaskManager();
 
     public FaweQueue getNewQueue(World world, boolean fast);
@@ -55,6 +53,8 @@ public interface IFawe {
     public UUID getUUID(String name);
 
     public String getName(UUID uuid);
+
+    public Object getBlocksHubApi();
 
     public default String getDebugInfo() {
         return "";

@@ -6,7 +6,6 @@ import com.boydti.fawe.config.Commands;
 import com.boydti.fawe.config.Settings;
 import com.boydti.fawe.object.FawePlayer;
 import com.boydti.fawe.object.brush.visualization.VisualQueue;
-import com.boydti.fawe.regions.general.plot.PlotSquaredFeature;
 import com.boydti.fawe.util.*;
 import com.boydti.fawe.util.chat.ChatManager;
 import com.boydti.fawe.util.chat.PlainChatManager;
@@ -258,8 +257,6 @@ public class Fawe {
          */
         this.setupMemoryListener();
         this.timer = new FaweTimer();
-        Fawe.this.IMP.setupVault();
-
         File jar = MainUtil.getJarFile();
         File extraBlocks = MainUtil.copyFile(jar, "extrablocks.json", null);
         if (extraBlocks != null && extraBlocks.exists()) {
@@ -273,17 +270,6 @@ public class Fawe {
                 }
             });
         }
-
-        // Delayed worldedit setup
-        TaskManager.IMP.later(() -> {
-            try {
-                transformParser = new DefaultTransformParser(getWorldEdit());
-                visualQueue = new VisualQueue(3);
-                WEManager.IMP.managers.addAll(Fawe.this.IMP.getMaskManagers());
-                WEManager.IMP.managers.add(new PlotSquaredFeature());
-                Fawe.debug("Plugin 'PlotSquared' found. Using it now.");
-            } catch (Throwable e) {}
-        }, 0);
 
         TaskManager.IMP.repeat(timer, 1);
 
