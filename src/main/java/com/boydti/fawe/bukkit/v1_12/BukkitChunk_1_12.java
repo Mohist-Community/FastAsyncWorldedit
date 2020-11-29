@@ -181,7 +181,11 @@ public class BukkitChunk_1_12 extends CharFaweChunk<Chunk, BukkitQueue_1_12> {
 
     @Override
     public void start() {
-        getChunk().load(true);
+        try {
+            getChunk().load(true);
+        } catch (Exception e) {
+
+        }
     }
 
     private void removeEntity(Entity entity) {
